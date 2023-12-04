@@ -1,5 +1,12 @@
 import { reverseString } from "../../utils";
 
+/**
+ * The implementation for getting last digit is actually pretty stupid and I should just
+ * search from the start for multiple occurences and take the last one.
+ *
+ * Talk about premature optimization (which is worse than not "optimized"), lul.
+ */
+
 const digitStrings: Record<string, number> = {
   one: 1,
   two: 2,
@@ -12,43 +19,36 @@ const digitStrings: Record<string, number> = {
   nine: 9,
 } as const;
 
-const digitRegExp = /one|two|three|four|five|six|seven|eight|nine|\d/;
-const reversedDigitRegExp = /eno|owt|eerht|ruof|evif|xis|neves|thgie|enin|\d/;
+const digitRegExp = /one|two|three|four|five|six|seven|eight|nine|\d/g;
 
 export function solve(lines: string[]) {
   return lines.reduce<number>((acc, line) => {
-    const firstDigit = getFirstDigit(line);
-    const lastDigit = getLastDigit(line);
+    const [firstDigit, lastDigit] = getFirstAndLastDigits(line);
     const numberFromLine = Number(`${firstDigit}${lastDigit}`);
+    console.log(line, numberFromLine);
     return acc + numberFromLine;
   }, 0);
 }
 
-function getFirstDigit(line: string) {
-  const digitString = line.match(digitRegExp)?.at(0);
-  if (!digitString) {
+function getFirstAndLastDigits(line: string) {
+  const digitStrings = line.match(digitRegExp);
+  if (!digitStrings || digitStrings.length === 0) {
     throw new Error("Input does not include digit");
+  }
+  return [
+    digitStringToNumber(digitStrings.at(0)),
+    digitStringToNumber(digitStrings.at(-1)),
+  ];
+}
+
+function digitStringToNumber(digitString: string | undefined) {
+  if (!digitString) {
+    return NaN;
   }
   if (digitString.length > 1) {
     return digitStrings[digitString];
   }
   const digit = Number(digitString);
-  if (!isNaN(digit)) {
-    return digit;
-  }
-}
-
-function getLastDigit(line: string) {
-  const reversedLine = reverseString(line);
-  const reversedDigitString = reversedLine.match(reversedDigitRegExp)?.at(0);
-  if (!reversedDigitString) {
-    throw new Error("Input does not include digit");
-  }
-  if (reversedDigitString.length > 1) {
-    const digitString = reverseString(reversedDigitString);
-    return digitStrings[digitString];
-  }
-  const digit = Number(reversedDigitString);
   if (!isNaN(digit)) {
     return digit;
   }
